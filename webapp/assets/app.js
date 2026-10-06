@@ -211,7 +211,8 @@ async function api(path, options = {}, _retried = false) {
   }
   const headers = { "ngrok-skip-browser-warning": "1", ...(options.headers || {}) };
   if (sessionToken) {
-    headers["Authorization"] = `Bearer ${sessionToken}`;
+    // Не Authorization: его перехватывает Yandex Serverless Containers.
+    headers["X-Session-Token"] = sessionToken;
   } else {
     headers["X-Telegram-Init-Data"] = initData;
   }

@@ -338,6 +338,17 @@ def test_bearer_token_from_bot_button_authenticates(client, auth_headers):
     assert response.json()["telegram_user_id"] == 42
 
 
+def test_session_token_header_authenticates(client, auth_headers):
+    """X-Session-Token — основной путь фронта: Authorization забирает Yandex Cloud."""
+    from app.api.telegram_auth import issue_session_token
+
+    client.get("/api/v1/me", headers=auth_headers)
+    token = issue_session_token(42, "test-token-for-pytest", 3600)
+    response = client.get("/api/v1/me", headers={"X-Session-Token": token})
+    assert response.status_code == 200
+    assert response.json()["telegram_user_id"] == 42
+
+
 def test_session_token_renews_silently_before_expiry(client, auth_headers):
     """Токен на исходе продлевается заголовком — иначе вход однажды умирает,
     и взять новый негде: initData Telegram отдаёт не всегда."""

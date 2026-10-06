@@ -58,7 +58,7 @@ app.add_middleware(
     allow_origins=list(settings.allowed_origins),
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "X-Telegram-Init-Data", "ngrok-skip-browser-warning"],
+    allow_headers=["Content-Type", "Authorization", "X-Session-Token", "X-Telegram-Init-Data", "ngrok-skip-browser-warning"],
     # Без expose_headers браузер спрячет продлённый токен от скрипта.
     expose_headers=[SESSION_TOKEN_HEADER],
 )
@@ -101,14 +101,23 @@ async def telegram_identity(
 async def current_user(
     response: Response,
     authorization: Annotated[str | None, Header()] = None,
+    x_session_token: Annotated[str | None, Header()] = None,
     x_telegram_init_data: Annotated[str | None, Header()] = None,
 ) -> dict:
-    """Bearer-токен из /auth/exchange — приоритетный путь: не зависит от того,
+    """Сессионный токен из /auth/exchange — приоритетный путь: не зависит от того,
     насколько свежий/целый initData отдал в этот раз Telegram-клиент. Сырой
-    initData остаётся резервным путём для клиентов, ещё не получивших токен."""
+    initData остаётся резервным путём для клиентов, ещё не получивших токен.
+
+    Фронт шлёт токен в X-Session-Token: заголовок Authorization Yandex Serverless
+    Containers забирает себе и проверяет как IAM-токен (чужой — 403 до приложения).
+    Bearer в Authorization по-прежнему принимается — для тестов и старых клиентов."""
     settings = get_settings()
-    if authorization and authorization.lower().startswith("bearer "):
+    token = None
+    if x_session_token:
+        token = x_session_token.strip()
+    elif authorization and authorization.lower().startswith("bearer "):
         token = authorization[len("bearer "):].strip()
+    if token:
         bot_token = settings.require_bot_token()
         parsed = read_session_token(token, bot_token)
         if parsed is None:
