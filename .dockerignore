@@ -1,0 +1,13 @@
+.git
+.github
+.env
+vercel-env.txt
+**/__pycache__
+.pytest_cache
+data
+tests
+scripts
+proxy
+docs/readme
+*.log
+*.ps1

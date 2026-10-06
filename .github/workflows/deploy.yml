@@ -1,0 +1,72 @@
+name: Deploy to Yandex Cloud
+
+# Пуш в main собирает образ, кладёт его в Container Registry и выкатывает
+# новую ревизию Serverless Container. Секреты бота живут в секретах репозитория
+# и передаются в ревизию переменными окружения.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "content/**"
+      - "webapp/**"
+      - "docs/welcome.jpg"
+      - "requirements.txt"
+      - "Dockerfile"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  IMAGE: cr.yandex/${{ vars.YC_REGISTRY_ID }}/ind-interior-bot:${{ github.sha }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        env:
+          YC_SA_KEY: ${{ secrets.YC_SA_KEY }}
+        run: printf '%s' "$YC_SA_KEY" | docker login --username json_key --password-stdin cr.yandex
+
+      - name: Build and push image
+        run: |
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Install yc
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i "$HOME/yc" -n
+          echo "$HOME/yc/bin" >> "$GITHUB_PATH"
+
+      - name: Deploy revision
+        env:
+          YC_SA_KEY: ${{ secrets.YC_SA_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+        run: |
+          printf '%s' "$YC_SA_KEY" > key.json
+          yc config set service-account-key key.json
+          yc config set folder-id "${{ vars.YC_FOLDER_ID }}"
+          yc serverless container revision deploy \
+            --container-id "${{ vars.YC_CONTAINER_ID }}" \
+            --image "$IMAGE" \
+            --service-account-id "${{ vars.YC_SA_ID }}" \
+            --cores 1 --core-fraction 100 --memory 512MB \
+            --concurrency 8 --execution-timeout 30s \
+            --environment "TELEGRAM_TOKEN=$TELEGRAM_TOKEN,DATABASE_URL=$DATABASE_URL,WEBHOOK_SECRET=$WEBHOOK_SECRET,DB_SCHEMA=interior,WEBAPP_URL=${{ vars.PUBLIC_URL }}/,ALLOWED_ORIGINS=${{ vars.PUBLIC_URL }},INIT_DATA_MAX_AGE_SECONDS=86400"
+          rm key.json
+
+      - name: Check health
+        run: |
+          for i in 1 2 3 4 5; do
+            curl -fsS "${{ vars.PUBLIC_URL }}/api/v1/health" && exit 0
+            sleep 10
+          done
+          exit 1
