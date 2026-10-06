@@ -53,6 +53,7 @@ jobs:
         run: |
           printf '%s' "$YC_SA_KEY" > key.json
           yc config set service-account-key key.json
+          yc config set endpoint api.cloud.yandex.net:443
           yc config set folder-id "${{ vars.YC_FOLDER_ID }}"
           yc serverless container revision deploy \
             --container-id "${{ vars.YC_CONTAINER_ID }}" \
