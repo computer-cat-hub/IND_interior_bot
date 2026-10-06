@@ -38,6 +38,7 @@ class Settings:
     admin_telegram_ids: frozenset[int]
     init_data_max_age_seconds: int
     allowed_origins: tuple[str, ...]
+    telegram_api_base: str = ""
 
     def require_bot_token(self) -> str:
         if not self.telegram_token:
@@ -77,4 +78,7 @@ def get_settings() -> Settings:
         admin_telegram_ids=_int_set(os.environ.get("ADMIN_TELEGRAM_IDS", "")),
         init_data_max_age_seconds=int(os.environ.get("INIT_DATA_MAX_AGE_SECONDS", "86400")),
         allowed_origins=_origin_tuple(os.environ.get("ALLOWED_ORIGINS", "")),
+        # Адрес Bot API. Пусто — api.telegram.org напрямую. Из российского облака
+        # Telegram недоступен, поэтому там бот ходит через ретранслятор за рубежом.
+        telegram_api_base=os.environ.get("TELEGRAM_API_BASE", "").strip().rstrip("/"),
     )

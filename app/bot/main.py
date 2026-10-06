@@ -6,6 +6,8 @@ import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.client.telegram import TelegramAPIServer
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
 from aiogram.exceptions import TelegramBadRequest
@@ -71,7 +73,14 @@ HELP = (
 
 def create_bot() -> Bot:
     settings = get_settings()
-    return Bot(token=settings.require_bot_token(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    session = None
+    if settings.telegram_api_base:
+        session = AiohttpSession(api=TelegramAPIServer.from_base(settings.telegram_api_base))
+    return Bot(
+        token=settings.require_bot_token(),
+        session=session,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
 
 
 def create_dispatcher() -> Dispatcher:

@@ -61,7 +61,7 @@ jobs:
             --service-account-id "${{ vars.YC_SA_ID }}" \
             --cores 1 --core-fraction 100 --memory 512MB \
             --concurrency 8 --execution-timeout 30s \
-            --environment "TELEGRAM_TOKEN=$TELEGRAM_TOKEN,DATABASE_URL=$DATABASE_URL,WEBHOOK_SECRET=$WEBHOOK_SECRET,DB_SCHEMA=interior,WEBAPP_URL=${{ vars.PUBLIC_URL }}/,ALLOWED_ORIGINS=${{ vars.PUBLIC_URL }},INIT_DATA_MAX_AGE_SECONDS=86400"
+            --environment "TELEGRAM_TOKEN=$TELEGRAM_TOKEN,DATABASE_URL=$DATABASE_URL,WEBHOOK_SECRET=$WEBHOOK_SECRET,DB_SCHEMA=interior,WEBAPP_URL=${{ vars.PUBLIC_URL }}/,ALLOWED_ORIGINS=${{ vars.PUBLIC_URL }},INIT_DATA_MAX_AGE_SECONDS=86400,TELEGRAM_API_BASE=${{ vars.TELEGRAM_RELAY }}/tg"
           rm key.json
 
       - name: Check health
