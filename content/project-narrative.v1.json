@@ -4,7 +4,7 @@
   "status": "draft-v1",
   "title": "Нарратив для проекта",
   "duration_hint": "20-25 минут",
-  "source_note": "Черновик v1, расширенный: 35 вопросов по мотивам RIBA Plan of Work, Peña Problem Seeking (Function/Form/Economy/Time), гостиничных FF&E-гайдов и практик устойчивости (LEED/BREEAM/WELL). Подтипы и курированные референсы не включены - методология для них не утверждена (см. Obsidian 30 Projects/Interior Archetype Test/02 - Product Decisions). Владелец контента - Dariy, нужен content review перед реальным использованием. Типологические варианты формулировок (variants) добавлены 2026-09-16: переформулированы тексты 23 из 35 вопросов для office/restaurant/hotel/residential-common/airport/museum/sports, веса и структура ответов не менялись.",
+  "source_note": "Черновик v1, расширенный: 35 вопросов по мотивам RIBA Plan of Work, Peña Problem Seeking (Function/Form/Economy/Time), гостиничных FF&E-гайдов и практик устойчивости (LEED/BREEAM/WELL). Подтипы и курированные референсы не включены - методология для них не утверждена. Перед реальным использованием нужен content review. Типологические варианты формулировок (variants) добавлены 2026-09-16: переформулированы тексты 23 из 35 вопросов для office/restaurant/hotel/residential-common/airport/museum/sports, веса и структура ответов не менялись.",
   "questions": [
     {
       "id": "q1",

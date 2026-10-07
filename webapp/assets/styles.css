@@ -24,6 +24,12 @@
    весь интерфейс вместе с кнопкой «закрыть» прыгает на ширину полосы. */
 html { background: var(--bg); scroll-behavior: smooth; scrollbar-gutter: stable; }
 
+/* Касание на телефоне — без синей вспышки вебвью Android и без рамки фокуса,
+   которая иначе остаётся на кнопке после тапа. Рамка для навигации с
+   клавиатуры остаётся: её рисует :focus-visible. */
+* { -webkit-tap-highlight-color: transparent; }
+:focus:not(:focus-visible) { outline: none; }
+
 body {
   margin: 0;
   min-width: 320px;

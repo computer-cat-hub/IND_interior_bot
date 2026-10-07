@@ -58,7 +58,7 @@ app.add_middleware(
     allow_origins=list(settings.allowed_origins),
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "X-Session-Token", "X-Telegram-Init-Data", "ngrok-skip-browser-warning"],
+    allow_headers=["Content-Type", "Authorization", "X-Session-Token", "X-Telegram-Init-Data"],
     # Без expose_headers браузер спрячет продлённый токен от скрипта.
     expose_headers=[SESSION_TOKEN_HEADER],
 )
@@ -193,7 +193,7 @@ async def health() -> dict:
     return {
         "status": "ok",
         "version": app.version,
-        "commit": os.environ.get("VERCEL_GIT_COMMIT_SHA", "local")[:7],
+        "commit": os.environ.get("GIT_COMMIT", "local")[:7],
     }
 
 

@@ -34,7 +34,6 @@ class Settings:
     database_url: str
     db_schema: str
     webhook_secret: str
-    db_path: Path
     admin_telegram_ids: frozenset[int]
     init_data_max_age_seconds: int
     allowed_origins: tuple[str, ...]
@@ -59,10 +58,6 @@ class Settings:
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     _load_env(BASE_DIR / ".env")
-    db_value = os.environ.get("DB_FILE", "data/interior-narrative.sqlite3")
-    db_path = Path(db_value)
-    if not db_path.is_absolute():
-        db_path = BASE_DIR / db_path
     return Settings(
         telegram_token=os.environ.get("TELEGRAM_TOKEN", "").strip(),
         webapp_url=os.environ.get("WEBAPP_URL", "").strip().rstrip("/"),
@@ -74,7 +69,6 @@ def get_settings() -> Settings:
         # Схема, а не отдельная база: в одном проекте Supabase живут два продукта,
         # и тесты гоняются в своей схеме, не задевая рабочие данные.
         db_schema=os.environ.get("DB_SCHEMA", "interior").strip(),
-        db_path=db_path,
         admin_telegram_ids=_int_set(os.environ.get("ADMIN_TELEGRAM_IDS", "")),
         init_data_max_age_seconds=int(os.environ.get("INIT_DATA_MAX_AGE_SECONDS", "86400")),
         allowed_origins=_origin_tuple(os.environ.get("ALLOWED_ORIGINS", "")),

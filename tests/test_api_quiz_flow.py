@@ -26,7 +26,7 @@ def client(clean_tables, monkeypatch):
 
     monkeypatch.setenv("DB_SCHEMA", TEST_SCHEMA)
     monkeypatch.setenv("TELEGRAM_TOKEN", "test-token-for-pytest")
-    monkeypatch.setenv("ALLOWED_ORIGINS", "https://dariyxyz.github.io")
+    monkeypatch.setenv("ALLOWED_ORIGINS", "https://example.containers.yandexcloud.net")
 
     from app.core.config import get_settings
     get_settings.cache_clear()

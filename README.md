@@ -14,6 +14,7 @@
   <img alt="Python" src="https://img.shields.io/badge/Python-3.12-111827?logo=python&logoColor=white">
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-111827?logo=fastapi&logoColor=white">
   <img alt="aiogram" src="https://img.shields.io/badge/aiogram-3-111827">
+  <img alt="Yandex Cloud" src="https://img.shields.io/badge/Yandex_Cloud-Serverless_Containers-111827">
   <img alt="Postgres" src="https://img.shields.io/badge/Postgres-Supabase-111827?logo=postgresql&logoColor=white">
 </p>
 
@@ -41,36 +42,38 @@
 
 ```mermaid
 flowchart LR
-    U["Дизайнер<br>в Telegram"] -->|Mini App| P["GitHub Pages<br>webapp/"]
-    P -->|"/api/*"| X["Прокси Deno Deploy<br>proxy/main.ts"]
-    X --> V["Vercel<br>FastAPI · api/index.py"]
-    T["Telegram"] -->|webhook| V
-    V --> S[("Supabase Postgres<br>схема interior")]
-    G["GitHub Actions<br>keepalive"] -.->|"раз в день /health"| V
+    U["Дизайнер<br>в Telegram"] -->|Mini App| Y["Yandex Serverless Container<br>Mini App + API + webhook"]
+    T["Telegram"] -->|webhook| R["Ретранслятор<br>Deno Deploy"]
+    R --> Y
+    Y -->|Bot API| R
+    R --> T
+    Y --> S[("Supabase Postgres<br>схема interior")]
+    G["GitHub Actions"] -.->|"push в main: сборка и выкатка"| Y
 ```
 
-- **Фронт** — статический Mini App в `webapp/`, публикуется на GitHub Pages workflow-ом `pages.yml` при пуше в `main`.
-- **API и бот** — одно FastAPI-приложение (`app/api/main.py`) как функция Vercel в регионе `dub1`, рядом с базой. Бот работает через webhook `POST /api/v1/telegram/webhook`, отдельного процесса нет.
-- **Прокси** — `*.vercel.app` недоступен у части российских провайдеров (блок по IP), поэтому Mini App ходит в API через Deno Deploy. Webhook Telegram идёт на Vercel напрямую.
+- **Приложение** — одно FastAPI-приложение в контейнере Yandex Cloud: Mini App с корня, API под `/api/v1`, webhook бота там же. Яндекс из РФ открывается без обходов.
+- **Ретранслятор** — `proxy/main.ts` на Deno Deploy. Telegram и российские дата-центры друг до друга не достают, поэтому webhook и вызовы Bot API идут через него. Mini App его не использует.
 - **База** — Postgres в Supabase, схема `interior`. Бесплатный проект засыпает после недели без запросов: `/api/v1/health` делает `SELECT 1`, а `keepalive.yml` дёргает его раз в день.
-- **Вход** — `initData` проверяется один раз в `POST /api/v1/auth/exchange` и меняется на сессионный токен; бот подписывает токен и в кнопку входа. Подробности — [docs/architecture.md](docs/architecture.md).
+- **Вход** — `initData` проверяется один раз и меняется на сессионный токен; бот подписывает токен и в кнопку входа. Токен ходит в заголовке `X-Session-Token`.
+
+Подробности — [docs/architecture.md](docs/architecture.md).
 
 ## Структура
 
 ```text
 app/
-  api/        FastAPI: эндпоинты, проверка initData, сессионные токены
+  api/        FastAPI: эндпоинты, проверка initData, сессионные токены, webhook
   bot/        aiogram: /start, /app, /help, /privacy, клавиатуры
   core/       настройки из переменных окружения
   domain/     quiz_engine — подсчёт и сборка результата, без привязки к UI
   storage/    repository на asyncpg
-api/index.py  точка входа Vercel
 content/      вопросы, архетипы, банк формулировок результата (JSON, версии v1)
 migrations/   схема базы
-proxy/        прокси для Deno Deploy
-scripts/      настройка бота, перенос данных, экспорт PDF презентации
+proxy/        ретранслятор Telegram ↔ Yandex для Deno Deploy
+scripts/      настройка бота, экспорт PDF презентации
 tests/        pytest против настоящего Postgres (схема interior_test)
 webapp/       Mini App и презентация для отдела (presentation.html)
+Dockerfile    образ для Yandex Serverless Containers
 ```
 
 ## Локальный запуск
@@ -81,7 +84,7 @@ cp .env.example .env          # заполнить TELEGRAM_TOKEN, DATABASE_URL 
 uvicorn app.api.main:app --port 8010
 ```
 
-API отдаёт и Mini App с корня: `http://127.0.0.1:8010/`. Чтобы фронт ходил в локальный API, в `webapp/config.js` поменяйте `API_URL`. Вне Telegram нет `initData`, поэтому для ручной проверки нужен сессионный токен в адресе (`?t=...`), его выдаёт бот.
+API отдаёт и Mini App с корня: `http://127.0.0.1:8010/`. Чтобы фронт ходил в локальный API, в `webapp/config.js` поменяйте `API_URL`. Локально бот ходит в Telegram напрямую — `TELEGRAM_API_BASE` оставьте пустым. Вне Telegram нет `initData`, поэтому для ручной проверки нужен сессионный токен в адресе (`?t=...`), его выдаёт бот.
 
 ```bash
 pytest                        # ~3 минуты: тесты собирают схему interior_test в той же базе
@@ -98,18 +101,19 @@ pytest                        # ~3 минуты: тесты собирают с�
 | `WEBAPP_URL` | адрес Mini App для кнопки бота (только https) |
 | `ALLOWED_ORIGINS` | CORS: откуда фронту можно ходить в API |
 | `INIT_DATA_MAX_AGE_SECONDS` | срок годности `initData` |
+| `TELEGRAM_API_BASE` | адрес Bot API; в облаке — ретранслятор + `/tg`, локально пусто |
 
 ## Деплой
 
-| Что | Как |
-|---|---|
-| Mini App | пуш в `main` с изменениями в `webapp/**` → `pages.yml` → ветка `gh-pages` |
-| API и бот | пуш в `main` → Vercel собирает `api/index.py` |
-| Прокси | код из `proxy/main.ts` вручную вставляется в playground на Deno Deploy |
-| Настройки бота | `python scripts/setup_bot.py --webhook <https-адрес>` — webhook, команды, кнопка меню |
-| PDF презентации | `python scripts/deck_pdf.py` — текст в PDF редактируется в Acrobat |
+Пуш в `main` с изменениями в `app/`, `content/`, `webapp/`, `Dockerfile` запускает `.github/workflows/deploy.yml`: сборка образа → Yandex Container Registry → новая ревизия Serverless Container → проверка `/api/v1/health`.
 
-> Сейчас прод собирается из исходного репозитория. Перенос Vercel, GitHub Pages и адресов бота на этот репозиторий — отдельный шаг; дальше планируется переезд на сервер IND.
+| Что | Где |
+|---|---|
+| Секреты бота | Settings → Secrets: `TELEGRAM_TOKEN`, `WEBHOOK_SECRET`, `DATABASE_URL`, `YC_SA_KEY` (авторизованный ключ сервисного аккаунта Yandex Cloud) |
+| Адреса и ID | Settings → Variables: `PUBLIC_URL`, `TELEGRAM_RELAY`, `YC_FOLDER_ID`, `YC_REGISTRY_ID`, `YC_CONTAINER_ID`, `YC_SA_ID` |
+| Ретранслятор | код из `proxy/main.ts` вставляется в playground Deno Deploy; переменные `UPSTREAM` (адрес контейнера) и `BOT_ID` |
+| Webhook и команды бота | `python scripts/setup_bot.py --webhook <адрес ретранслятора>` (`--show` — текущее состояние) |
+| PDF презентации | `python scripts/deck_pdf.py` — текст в PDF редактируется в Acrobat |
 
 ## Контент
 

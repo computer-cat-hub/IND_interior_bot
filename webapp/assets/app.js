@@ -96,7 +96,7 @@ async function exchangeForSessionToken() {
   try {
     const response = await fetch(`${apiBaseUrl}/api/v1/auth/exchange`, {
       method: "POST",
-      headers: { "X-Telegram-Init-Data": initData, "ngrok-skip-browser-warning": "1" },
+      headers: { "X-Telegram-Init-Data": initData },
     });
     if (!response.ok) return null;
     const data = await response.json();
@@ -209,7 +209,7 @@ async function api(path, options = {}, _retried = false) {
   if (!sessionToken) {
     await exchangeForSessionToken();
   }
-  const headers = { "ngrok-skip-browser-warning": "1", ...(options.headers || {}) };
+  const headers = { ...(options.headers || {}) };
   if (sessionToken) {
     // Не Authorization: его перехватывает Yandex Serverless Containers.
     headers["X-Session-Token"] = sessionToken;
