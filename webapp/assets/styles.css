@@ -133,7 +133,8 @@ button { font: inherit; }
      на тёмных — дешевле, чем менять цвет знака. */
   filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, .8));
 }
-.brand-home:hover,
+/* Hover — только для мыши: на телефоне :hover залипает на кнопке после касания. */
+@media (hover: hover) and (pointer: fine) { .brand-home:hover { transform: scale(1.08); } }
 .brand-home:focus-visible { transform: scale(1.08); }
 .brand-home:focus,
 .brand-home:focus-visible { outline: none; }
@@ -173,9 +174,9 @@ button { font: inherit; }
   cursor: pointer;
   transition: border-color .15s, background-color .15s;
 }
-.history-button:hover { border-color: var(--accent); background: var(--accent-light); }
+@media (hover: hover) and (pointer: fine) { .history-button:hover { border-color: var(--accent); background: var(--accent-light); } }
 .history-button .ic { color: var(--text-secondary); }
-.history-button:hover .ic { color: var(--accent); }
+@media (hover: hover) and (pointer: fine) { .history-button:hover .ic { color: var(--accent); } }
 
 /* Режим «закрыть» — на истории и на открытом результате кнопка становится
    крестиком: выход очевиден, и не выглядит как вход в тот же раздел. */
@@ -221,7 +222,7 @@ button { font: inherit; }
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.test-card:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
+@media (hover: hover) and (pointer: fine) { .test-card:hover { border-color: var(--accent); box-shadow: var(--shadow-md); } }
 .test-card:active { transform: scale(.995); }
 
 /* Номер, заголовок и стрелка держатся на одной линии: у боковых колонок высота
@@ -317,7 +318,7 @@ button { font: inherit; }
   transition: background .15s, border-color .15s, color .15s, transform .1s;
 }
 .btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: var(--accent-hover); }
+@media (hover: hover) and (pointer: fine) { .btn-primary:hover { background: var(--accent-hover); } }
 .btn-primary:active { transform: scale(.98); }
 .btn-primary:disabled { opacity: 0.5; cursor: default; transform: none; }
 
@@ -325,7 +326,7 @@ button { font: inherit; }
 .btn-with-icon .ic { width: 18px; height: 18px; }
 
 .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--accent); }
-.btn-ghost:hover { border-color: var(--accent); background: var(--accent-light); color: var(--text-primary); }
+@media (hover: hover) and (pointer: fine) { .btn-ghost:hover { border-color: var(--accent); background: var(--accent-light); color: var(--text-primary); } }
 
 /* ── Экран вопроса ── */
 
@@ -386,7 +387,7 @@ button { font: inherit; }
   cursor: pointer;
   transition: border-color 150ms ease, background-color 150ms ease, transform .1s;
 }
-.option-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-light); }
+@media (hover: hover) and (pointer: fine) { .option-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-light); } }
 .option-btn:active:not(:disabled) { transform: scale(.99); }
 .option-btn:disabled { cursor: default; }
 .option-btn.chosen { border-color: var(--accent); background: var(--accent-light); }
@@ -398,7 +399,7 @@ button { font: inherit; }
 /* «Ещё не знаю» — приглушённая кнопка того же роста, что «Назад»: это выход
    из вопроса, а не ответ, и притягивать взгляд ей незачем. */
 .btn-dunno { color: var(--text-secondary); }
-.btn-dunno:hover { border-color: var(--text-muted); background: transparent; color: var(--text-primary); }
+@media (hover: hover) and (pointer: fine) { .btn-dunno:hover { border-color: var(--text-muted); background: transparent; color: var(--text-primary); } }
 .btn-dunno .ic { color: var(--text-muted); }
 
 /* Иконка съедает воздух со своей стороны — паддинги подрезаны, чтобы пара
@@ -534,7 +535,7 @@ button { font: inherit; }
   cursor: pointer;
   transition: border-color .15s;
 }
-.archetype-card:hover { border-color: var(--card-color, var(--border)); }
+@media (hover: hover) and (pointer: fine) { .archetype-card:hover { border-color: var(--card-color, var(--border)); } }
 .archetype-card.expanded .card-body { display: block; }
 
 .card-header { display: flex; align-items: center; gap: 14px; }
@@ -559,7 +560,7 @@ button { font: inherit; }
   justify-content: center;
   transition: transform .2s, background .15s, color .15s;
 }
-.archetype-card:hover .card-chevron { background: var(--border); color: var(--text-secondary); }
+@media (hover: hover) and (pointer: fine) { .archetype-card:hover .card-chevron { background: var(--border); color: var(--text-secondary); } }
 .archetype-card.expanded .card-chevron { transform: rotate(180deg); }
 
 .card-body { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
@@ -580,7 +581,7 @@ button { font: inherit; }
   cursor: pointer;
   transition: border-color .15s;
 }
-.history-item:hover { border-color: var(--accent); }
+@media (hover: hover) and (pointer: fine) { .history-item:hover { border-color: var(--accent); } }
 .history-item .h-top { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); }
 .history-item strong { display: block; margin-top: 4px; font-size: 15px; }
 
