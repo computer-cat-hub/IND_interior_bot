@@ -131,7 +131,10 @@ def create_dispatcher() -> Dispatcher:
         nonlocal welcome_photo_id
         name = html.escape(message.from_user.first_name or "коллега")
         caption = WELCOME.format(name=name)
-        keyboard = await keyboard_for(message)
+        # Кнопка прямо в приветствии: нижнюю клавиатуру Telegram Desktop прячет
+        # в мелкую иконку, и человек решает, что приложения нет. Клавиатура с
+        # прошлых сообщений при этом остаётся — она постоянная.
+        keyboard = app_inline_button(webapp_url, None, await session_token_for(message))
 
         if not WELCOME_IMAGE.exists():
             logging.warning("Нет приветственной картинки: %s", WELCOME_IMAGE)
